@@ -106,10 +106,14 @@ void generate_transition_table(tm_turing_machine_t *tm, mpz_t number) {
     int bases[states * 6];
     int output[states * 6];
 
+    // machines ordering: next_state->shift_direction->write_char
+    // starting from the last state, from read character 1
+    // 0LA -> 0LB -> 0RA -> 0RB -> 1LA -> 1LB -> 1RA -> 1RB -> next state
+    // reverse order of cardinalities: write (2), shift (2), next (n+1)
     for (int i = 0; i < states * 2; i++) {
-        bases[i * 3] = 2;
+        bases[i * 3] = states + 1;
         bases[i * 3 + 1] = 2;
-        bases[i * 3 + 2] = states + 1;
+        bases[i * 3 + 2] = 2;
     }
 
     mpz_t temp_number, temp_base, temp_output;
@@ -128,9 +132,9 @@ void generate_transition_table(tm_turing_machine_t *tm, mpz_t number) {
         for(int j = 0; j < 2; j++) {
             int idx = (i * 6) + (j * 3);
             set_transition(tm->transition_table, i, j,
+                output[idx + 2],
                 output[idx],
-                output[idx + 1],
-                output[idx + 2] ? RIGHT : LEFT);
+                output[idx + 1] ? RIGHT : LEFT);
         }
     }
 }
@@ -143,30 +147,30 @@ void get_turing_machine_number(mpz_t result, tm_turing_machine_t *tm) {
     mpz_inits(weight, temp, NULL);
     mpz_set_ui(result, 0);
     mpz_set_ui(weight, 1);
-
     for (int i = 0; i < states * 2; i++) {
-        bases[i * 3] = states + 1;
+        bases[i * 3] = 2;
         bases[i * 3 + 1] = 2;
-        bases[i * 3 + 2] = 2;
+        bases[i * 3 + 2] = states + 1;
     }
 
     for (int i = states - 1; i >= 0; i--) {
         for (int j = 1; j >= 0; j--) {
+            // here order matters
             tm_transition_t transition = tm->transition_table->table[i][j];
-
-            if (transition.shift_direction == RIGHT) {
-                mpz_add(result, result, weight);
-            }
-            mpz_mul_ui(weight, weight, bases[i * 6 + j * 3 + 2]);
-
-            if (transition.write_symbol == ONE) {
-                mpz_add(result, result, weight);
-            }
-            mpz_mul_ui(weight, weight, bases[i * 6 + j * 3 + 1]);
 
             mpz_set_ui(temp, transition.next_state);
             mpz_mul(temp, temp, weight);
             mpz_add(result, result, temp);
+            mpz_mul_ui(weight, weight, bases[i * 6 + j * 3 + 2]);
+
+            if (transition.shift_direction == RIGHT) {
+                mpz_add(result, result, weight);
+            }
+            mpz_mul_ui(weight, weight, bases[i * 6 + j * 3 + 1]);
+
+            if (transition.write_symbol == ONE) {
+                mpz_add(result, result, weight);
+            }
             mpz_mul_ui(weight, weight, bases[i * 6 + j * 3]);
         }
     }
@@ -228,31 +232,44 @@ tm_turing_machine_t* initialize_tm(int num_states, tm_state_t initial_state, tm_
 
     return tm;
 }
-
 void print_transition_table(tm_turing_machine_t *tm) {
     tm_transition_table_t *table = tm->transition_table;
-    printf("---------------------\n");
-    printf("| C | R | N | W | S |\n");
-    printf("---------------------\n");
+
+    printf("-----");
+    for (int state = 0; state < tm->num_states; ++state) {
+        printf("------");
+    }
+    printf("\n");
+    printf("|   |");
 
     for (int state = 0; state < tm->num_states; ++state) {
-        for (int symbol = 0; symbol <= 1; ++symbol) {
-            tm_transition_t *transition = &table->table[state][symbol];
-
-            if (transition->next_state == INVALID_STATE) {
-                continue;
-            }
-
-            printf("| %d | %d | %d | %d | %c |\n",
-                   state,
-                   symbol,
-                   transition->next_state,
-                   transition->write_symbol,
-                   transition->shift_direction == LEFT ? 'L' : 'R'
-                   );
-        }
+        printf("  %c  |", 'A' + state);
     }
-    printf("---------------------\n");
+    printf("\n");
+    printf("-----");
+    for (int state = 0; state < tm->num_states; ++state) {
+        printf("------");
+    }
+    printf("\n");
+
+    printf("| 0 |");
+    for (int state = 0; state < tm->num_states; ++state) {
+        tm_transition_t *transition = &table->table[state][0];
+        printf(" %d%c%c |", transition->write_symbol, transition->shift_direction == LEFT ? 'L' : 'R', 'A' + transition->next_state);
+    }
+    printf("\n");
+
+    printf("| 1 |");
+    for (int state = 0; state < tm->num_states; ++state) {
+        tm_transition_t *transition = &table->table[state][1];
+        printf(" %d%c%c |", transition->write_symbol, transition->shift_direction == LEFT ? 'L' : 'R', 'A' + transition->next_state);
+    }
+    printf("\n");
+    printf("-----");
+    for (int state = 0; state < tm->num_states; ++state) {
+        printf("------");
+    }
+    printf("\n");
 }
 
 void print_transition_table2(tm_turing_machine_t *tm) {
@@ -269,6 +286,25 @@ void print_transition_table2(tm_turing_machine_t *tm) {
     printf("\n");
 }
 
+void parse_transition_table(tm_turing_machine_t *tm, const char *input) {
+    int num_states = tm->num_states;
+    int idx = 0;
+
+    for (int i = 0; i < num_states; i++) {
+        for (int j = 0; j < 2; j++) {
+            char next_state_char = input[idx + 2];
+            int next_state = next_state_char - 'A';
+
+            tm_symbol_t write_symbol = (input[idx] == '1') ? ONE : ZERO;
+
+            tm_shift_t shift_direction = (input[idx + 1] == 'R') ? RIGHT : LEFT;
+
+            set_transition(tm->transition_table, i, j, next_state, write_symbol, shift_direction);
+            idx += 3;
+        }
+        idx++;
+    }
+}
 /*
 state space: |states|, |tms| ( =(4(n+1))^(2n) )
 1, 1
@@ -285,16 +321,18 @@ state space: |states|, |tms| ( =(4(n+1))^(2n) )
 12, 9711967541295580042210555933809967104
 13, 152784834199652075368661148843397208866816
 
-busy beavers: |states|, tm number, |ones|, |transitions|
+busy beavers: |states|, tm number, |ones|, |transitions| (std format)
 1, 56, 1, 1
-2, 12995, 4, 6
-3, 8361890, 6, 14
-4, 9351837901, 13, 107
-5, 19645319613864, 4098, 47176870
+2, 18371, 4, 6 (1RB1LB_1LA1RC)
+3, 14642600, 6, 14 (1RB1RD_0RC1RB_1LC1LA)
+4, 21216477565, 13, 107 (1RB1LB_1LA0LC_1RE1LD_1RD0RA)
+5, 51830926765032, 4098, 47176870 (1RB1LC_1RC1RB_1RD0LE_1LA1LD_1RF0LA)
+6, 183593859414557127, ?, ?  (1RB0LD_1RC0RF_1LC1LA_0LE1RG_1LF0RB_0RC0RE)
 */
 
 int main() {
     int num_states, choice;
+    char input[1024];
     mpz_t tm_no;
     mpz_init(tm_no);
 
@@ -316,20 +354,21 @@ int main() {
 
         generate_transition_table(tm, tm_no);
         print_transition_table(tm);
+        mpz_t tm_number;
+        mpz_init(tm_number);
+
+
+        get_turing_machine_number(tm_number, tm);
+        gmp_printf("\nTM Number: %Zd\n", tm_number);
 
     } else if (choice == 1) {
         int j, k, l;
 
-        printf("(Current State,Read Symbol): Next State,Write Symbol,Shift Direction");
-        for (int i = 0; i < num_states; i++) {
-            for (int n = 0; n < 2; n++) {
-                printf("(%d,%d): ", i, n);
-                if(scanf("%d,%d,%d", &j, &k, &l) != 1) {
-                    return -1;
-                }
-                set_transition(tm->transition_table, i, n, j, k, l);
-            }
+        printf("Std Format: ");
+        if(scanf("%s", input) != 1) {
+            return -1;
         }
+        parse_transition_table(tm, input);
 
         mpz_t tm_number;
         mpz_init(tm_number);
