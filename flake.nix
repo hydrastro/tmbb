@@ -19,6 +19,12 @@
             make PREFIX=$out
           '';
 
+          installPhase = ''
+            mkdir -p $out/bin
+            cp tmbb $out/bin/
+            chmod +x $out/bin/tmbb
+          '';
+
           meta = with pkgs.lib; { description = "tmbb"; };
         };
       });

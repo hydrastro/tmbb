@@ -1,13 +1,13 @@
 CC = gcc
 AR = ar
-CFLAGS = -c -fPIC -std=c89 -lgmp
+CFLAGS = -std=c89 -lgmp
 CFLAGS += -O2 -march=native -mtune=native
 CFLAGS += -Wall -Wextra -Werror -pedantic -pedantic-errors
 CFLAGS += -fno-common -Wl,--gc-sections -Wredundant-decls -Wno-unused-parameter
-CFLAGS += -fstack-protector-strong #-fPIE
+CFLAGS += -fstack-protector-strong -fPIE -fpie
 CFLAGS += -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security
 CFLAGS += -fstack-clash-protection -z noexecstack -z relro -z now
-CFLAGS += -Wl,-z,relro,-z,now -Wl,-pie #-fpie
+#CFLAGS += -Wl,-z,relro,-z,now -Wl,-pie #-fpie
 CFLAGS += -Waggregate-return -Wbad-function-cast -Wcast-align -Wcast-qual -Wdeclaration-after-statement
 CLFAGS += -Wfloat-equal -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wmissing-prototypes -Wnested-externs
 CFLAGS += -Wpointer-arith -Wredundant-decls -Wsequence-point -Wstrict-prototypes

@@ -50,7 +50,52 @@ make install
 ```
 
 ## Usage
+Getting the table:
+```shell
+States: 5
+(0: Get Table 1: Get Number 2: Run)
+Choice: 0
+TM Number: 51830926765032
+-----------------------------------
+|   |  A  |  B  |  C  |  D  |  E  |
+-----------------------------------
+| 0 | 1RB | 1RC | 1RD | 1LA | 1RF |
+| 1 | 1LC | 1RB | 0LE | 1LD | 0LA |
+-----------------------------------
+1RB1LC_1RC1RB_1RD0LE_1LA1LD_1RF0LA
 
+TM Number: 51830926765032
+```
+Getting the number:
+```shell
+States: 6
+(0: Get Table 1: Get Number 2: Run)
+Choice: 1
+Std Format: 1RB0LD_1RC0RF_1LC1LA_0LE1RG_1LF0RB_0RC0RE
+-----------------------------------------
+|   |  A  |  B  |  C  |  D  |  E  |  F  |
+-----------------------------------------
+| 0 | 1RB | 1RC | 1LC | 0LE | 1LF | 0RC |
+| 1 | 0LD | 0RF | 1LA | 1RG | 0RB | 0RE |
+-----------------------------------------
+
+TM Number: 183593859414557127
+```
+Running the machine:
+```shell
+States: 3
+(0: Get Table 1: Get Number 2: Run)
+Choice: 2
+TM Number: 14642600
+-----------------------
+|   |  A  |  B  |  C  |
+-----------------------
+| 0 | 1RB | 0RC | 1LC |
+| 1 | 1RD | 1RB | 1LA |
+-----------------------
+TM halted.
+Ones (Σ): 6, Transitions (S): 14
+```
 
 ## Contributing
 

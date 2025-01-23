@@ -334,6 +334,26 @@ void print_transition_table2(tm_turing_machine_t *tm) {
   printf("\n");
 }
 
+void print_transition_table3(tm_turing_machine_t *tm) {
+  int state, symbol;
+  char next_state;
+  tm_transition_table_t *table = tm->transition_table;
+  printf("std format: ");
+
+  for (state = 0; state < tm->num_states; ++state) {
+    for (symbol = 0; symbol <= 1; ++symbol) {
+      tm_transition_t *transition = &table->table[state][symbol];
+      next_state = 'A' + (char)transition->next_state;
+      printf("%d%c%c", transition->write_symbol,
+             transition->shift_direction == LEFT ? 'L' : 'R', next_state);
+    }
+    if (state < tm->num_states - 1) {
+      printf("_");
+    }
+  }
+  printf("\n");
+}
+
 void parse_transition_table(tm_turing_machine_t *tm, const char *input) {
   int num_states, i, j, next_state;
   char next_state_char;
@@ -396,7 +416,7 @@ int main(void) {
     return -1;
   }
 
-  printf("(0: Get Table 1: Get Number 2: Run)\nChoice: ");
+  printf("Choose:\n0. Get Table\n1. Get Number\n2. Run\n\nChoice: ");
   if (scanf("%d", &choice) != 1) {
     return -1;
   }
@@ -409,6 +429,7 @@ int main(void) {
 
     generate_transition_table(tm, tm_no);
     print_transition_table(tm);
+    print_transition_table3(tm);
     mpz_init(tm_number);
 
     get_turing_machine_number(tm_number, tm);
