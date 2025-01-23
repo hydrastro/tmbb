@@ -11,7 +11,7 @@ A little program for playing around with Turing Machines.
 ### Turing Machines
 State space size:  `( =(4(n+1))^(2n) )`
 
-|states|tms|
+|States|TMs|
 |------|---|
 |1|1|
 |2|64|
@@ -28,7 +28,7 @@ State space size:  `( =(4(n+1))^(2n) )`
 |13|152784834199652075368661148843397208866816|
 
 ### Busy Beavers
-|states|tm number|ones|transitions|std format|
+|States|TM number|Ones|Transitions|Std format|
 |------|---------|----|-----------|----------|
 |1|56|1|1|1RB0LA|
 |2|18371|4|6|1RB1LB_1LA1RC|
@@ -38,6 +38,9 @@ State space size:  `( =(4(n+1))^(2n) )`
 |6|183593859414557127|?|? |1RB0LD_1RC0RF_1LC1LA_0LE1RG_1LF0RB_0RC0RE|
 
 ## Installation
+### Dependencies
+- `gmp`
+
 ### With Nix
 ```shell
 nix build
@@ -102,5 +105,5 @@ Ones (Σ): 6, Transitions (S): 14
 Contributions are welcome!
 Before submitting a pull request please:
 
-- format your code with `clang-format`
-- test your code with `valgrind`
+- Format your code with `clang-format`
+- Test your code with `valgrind`
